@@ -1,11 +1,12 @@
 package app
 
 import (
-	"domain-link-crawler/app/utils"
 	"fmt"
 	"log"
 	"net/url"
 	"sync"
+
+	"github.com/husni-robani/domain-link-crawler.git/app/utils"
 )
 
 type CrawlConfig struct {

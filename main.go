@@ -1,8 +1,6 @@
 package main
 
 import (
-	"domain-link-crawler/app"
-	"domain-link-crawler/app/utils"
 	"fmt"
 	"log"
 	"net/url"
@@ -10,6 +8,9 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/husni-robani/domain-link-crawler.git/app"
+	"github.com/husni-robani/domain-link-crawler.git/app/utils"
 )
 
 func main(){		

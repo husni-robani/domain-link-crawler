@@ -1,4 +1,4 @@
-module domain-link-crawler
+module github.com/husni-robani/domain-link-crawler.git
 
 go 1.23.2
 
