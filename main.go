@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/husni-robani/domain-link-crawler.git/app"
-	"github.com/husni-robani/domain-link-crawler.git/app/utils"
 )
 
 func main(){		
@@ -55,7 +54,7 @@ func runCrawl(raw_url string, base_url url.URL, goroutine_size int, maxPages int
 		goroutine_size = 2
 	}
 	crawler_config := app.CrawlConfig{
-		Pages: map[string]int{},
+		Pages: map[string]*app.DataLink{},
 		BaseURL: &base_url,
 		Mu: &sync.Mutex{},
 		ConcurrencyControl: make(chan struct{}, goroutine_size),
@@ -74,7 +73,7 @@ func runCrawl(raw_url string, base_url url.URL, goroutine_size int, maxPages int
 
 	close(crawler_config.ConcurrencyControl)
 
-	utils.PrintReport(crawler_config.Pages, crawler_config.BaseURL.String())
+	crawler_config.PrintReport(crawler_config.BaseURL.String())
 	fmt.Println("Total Pages: ", len(crawler_config.Pages))
 	fmt.Println("Execution Time: ", time.Since(start))
 }
