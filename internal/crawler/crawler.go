@@ -1,12 +1,13 @@
-package app
+package crawler
 
 import (
 	"fmt"
 	"log"
 	"net/url"
 	"sync"
+	"time"
 
-	"github.com/husni-robani/domain-link-crawler.git/app/utils"
+	"github.com/husni-robani/domain-link-crawler.git/internal/utils"
 )
 
 type DataLink struct {
@@ -16,7 +17,7 @@ type DataLink struct {
 	TotalURLAppearence int
 }
 
-type CrawlConfig struct {
+type CrawlerCofig struct {
 	Pages map[string]*DataLink
 	BaseURL *url.URL
 	Mu *sync.Mutex
@@ -25,7 +26,26 @@ type CrawlConfig struct {
 	MaxPages int
 }
 
-func (cfg *CrawlConfig) CrawlPage(rawCurrentURL string) {
+func (cfg *CrawlerCofig) RunCrawl(){
+	start := time.Now()
+
+	cfg.Wg.Add(1)
+	go cfg.crawlPage(cfg.BaseURL.String())
+
+	cfg.ConcurrencyControl <- struct{}{}
+	
+	cfg.Wg.Wait()
+
+	close(cfg.ConcurrencyControl)
+	
+	cfg.printReport(cfg.BaseURL.String())
+
+	// TODO:  Masukan kedalam printReport:
+	fmt.Println("Total Pages: ", len(cfg.Pages))
+	fmt.Println("Execution Time: ", time.Since(start))
+}
+
+func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 	defer cfg.Wg.Done()
 
 	if len(cfg.Pages) >= cfg.MaxPages {
@@ -93,13 +113,15 @@ func (cfg *CrawlConfig) CrawlPage(rawCurrentURL string) {
 		}
 
 		cfg.Wg.Add(1)
-		go cfg.CrawlPage(url_item)
+		go cfg.crawlPage(url_item)
 		
 		cfg.ConcurrencyControl <- struct{}{}
 	}
 }
 
-func (cfg *CrawlConfig) PrintReport(baseURL string){
+func (cfg *CrawlerCofig) printReport(baseURL string){
+
+	// TODO: Ubah menggunakan logger
 	fmt.Printf(`
 ==========================================================
   REPORT for %v
@@ -114,7 +136,7 @@ func (cfg *CrawlConfig) PrintReport(baseURL string){
 	}
 }
 
-func (cfg *CrawlConfig) addPageVisit(normalizedURL string) (isFirst bool){
+func (cfg *CrawlerCofig) addPageVisit(normalizedURL string) (isFirst bool){
 	defer cfg.Mu.Unlock()
 
 	cfg.Mu.Lock()
