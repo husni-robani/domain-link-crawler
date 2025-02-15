@@ -81,4 +81,6 @@ func levelToString(level LogLevel) string {
     }
 }
 
-var DefaultLogger = New(LevelInfo, os.Stdout)
+var InfoDefaultLogger = New(LevelInfo, os.Stdout)
+var ErrDefaultLogger = New(LevelError, os.Stderr)
+var FatalDefaultLogger = New(LevelFatal, os.Stderr)

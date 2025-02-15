@@ -1,27 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"strconv"
 
 	"github.com/husni-robani/domain-link-crawler.git/internal/crawler"
+	"github.com/husni-robani/domain-link-crawler.git/internal/utils/logger"
 )
 
 func main(){		
 	if len(os.Args) > 4 {
-		log.Println("too many arguments provided")
+		logger.ErrDefaultLogger.Error("too many arguments provided")
 		return
 	}else if len(os.Args) < 4 {
 		switch len(os.Args) {
 		case 1: 
-			log.Println("url, goroutine size, and max pages argument needed!")
+			logger.ErrDefaultLogger.Error("url, goroutine size, and max pages argument needed!")
 		case 2: 
-			log.Println("goroutine size and max pages argument needed!")
+			logger.ErrDefaultLogger.Error("goroutine size and max pages argument needed!")
 		case 3: 
-			log.Println("max pages argument needed!")
+			logger.ErrDefaultLogger.Error("max pages argument needed!")
 		}
 		return
 	}
@@ -29,18 +28,18 @@ func main(){
 	raw_url := os.Args[1]
 	base_url, err := url.Parse(raw_url)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		logger.ErrDefaultLogger.Error(err.Error())
 	}
 
 	goroutine_size, err := strconv.Atoi(os.Args[2])
 	if err != nil {
-		log.Println("invalid goroutine size argument ! It should be int")
+		logger.ErrDefaultLogger.Error(err.Error())
 		return
 	}
 
 	max_pages, err := strconv.Atoi(os.Args[3])
 	if err != nil {
-		log.Println("invalid max pages argument ! It should be int")
+		logger.ErrDefaultLogger.Error("invalid max pages argument ! It should be int")
 		return
 	}
 

@@ -2,12 +2,12 @@ package crawler
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"sync"
 	"time"
 
 	"github.com/husni-robani/domain-link-crawler.git/internal/utils"
+	"github.com/husni-robani/domain-link-crawler.git/internal/utils/logger"
 )
 
 type DataLink struct {
@@ -41,8 +41,8 @@ func (cfg *CrawlerCofig) RunCrawl(){
 	cfg.printReport(cfg.BaseURL.String())
 
 	// TODO:  Masukan kedalam printReport:
-	fmt.Println("Total Pages: ", len(cfg.Pages))
-	fmt.Println("Execution Time: ", time.Since(start))
+	logger.InfoDefaultLogger.Info(fmt.Sprintf("Total Pages: %v\n", len(cfg.Pages)))
+	logger.InfoDefaultLogger.Info(fmt.Sprintf("Execution Time: %v\n", time.Since(start)))
 }
 
 func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
@@ -56,7 +56,9 @@ func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 	// CHECK IS THE DOMAIN OF rawCurrentURL SAME AS rawBaseURL
 	current_url_parsed, err := url.Parse(rawCurrentURL)
 	if err != nil {
-		log.Fatalf("Error parsing url. error: %v", err)
+		logger.ErrDefaultLogger.Error("failed to parsing url", rawCurrentURL, err)
+		<- cfg.ConcurrencyControl
+		return
 	}
 
 	if current_url_parsed.Host != cfg.BaseURL.Host{
@@ -67,7 +69,9 @@ func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 	// get a normalized of raw current url
 	normalized_current_url, err := utils.NormalizeURL(rawCurrentURL)
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.ErrDefaultLogger.Error("failed to normalized url", rawCurrentURL, err)
+		<-cfg.ConcurrencyControl
+		return
 	}
 
 	// check is normalized_current_url already crawled
@@ -86,16 +90,22 @@ func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 	cfg.Mu.Unlock()
 	html, err := utils.GetHTML(rawCurrentURL)
 	if err != nil {
-		log.Println(err.Error())
+		logger.ErrDefaultLogger.Error("failed to get html", rawCurrentURL, err)
 		return
 	}
 
-	fmt.Printf("\nStarting crawler of: %s\n...\n", rawCurrentURL)
-	fmt.Println("------------------------------------------------------------------------------------------------------------------------------")
+	logger.InfoDefaultLogger.Info(fmt.Sprintf(
+`Starting crawler of: %s
+...
+------------------------------------------------------------------------------------------------------------------------------`, 
+rawCurrentURL,
+))
 
 	urls, err := utils.GetURLs(html, cfg.BaseURL.String())
 	if err != nil {
-		log.Fatal(err)
+		logger.ErrDefaultLogger.Error("failed to get URLs", rawCurrentURL, err)
+		<- cfg.ConcurrencyControl
+		return
 	}
 
 	<- cfg.ConcurrencyControl
@@ -120,8 +130,6 @@ func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 }
 
 func (cfg *CrawlerCofig) printReport(baseURL string){
-
-	// TODO: Ubah menggunakan logger
 	fmt.Printf(`
 ==========================================================
   REPORT for %v

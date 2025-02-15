@@ -41,20 +41,3 @@ func GetURLs(htmlBody, rawBaseURL string) ([]string, error){
 
 	return urls, nil
 }
-	// for i := 1; i <= 4; i++{
-	// 	tokenType := tokenizer.Next()
-	// 	token := tokenizer.Token()
-	// 	// tagName, _ := tokenizer.TagName()
-	// 	// keys,values, _ := tokenizer.TagAttr()
-	// 	if tokenType == html.ErrorToken{
-	// 		return nil, errors.New("error while parsing html")
-	// 	}
-
-	// 	fmt.Println("Token Type: ", token.Type)
-	// 	fmt.Println("Tag Name: ", token.Data)
-	// 	fmt.Printf("Attributes: %v\n\n", token.Attr)
-
-	// 	// fmt.Println("Tag Name: ", string(tagName))
-	// 	// fmt.Println("Keys: ", string(keys))
-	// 	// fmt.Printf("Values: %v\n\n\n", string(values))
-	// }
