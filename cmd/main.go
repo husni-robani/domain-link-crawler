@@ -2,18 +2,21 @@ package main
 
 import (
 	"fmt"
+	"maps"
 	"net/url"
 	"strconv"
 
 	"github.com/husni-robani/domain-link-crawler.git/internal/crawler"
+	"github.com/husni-robani/domain-link-crawler.git/internal/report"
 	"github.com/husni-robani/domain-link-crawler.git/internal/utils/logger"
 )
 
 type userInput struct {
 	url url.URL
-	goroutine_size int
+	goroutineSize int
 	max_pages int
-	is_export bool
+	isExport bool
+	dirName string
 }
 
 func main(){		
@@ -28,8 +31,20 @@ func main(){
 		logger.ErrDefaultLogger.Error(err.Error())
 	}
 
-	crawler := crawler.NewCrawl(base_url, inputs.max_pages, inputs.goroutine_size)
-	crawler.RunCrawl()
+	crawler_instance := crawler.NewCrawl(base_url, inputs.max_pages, inputs.goroutineSize)
+	crawler_instance.RunCrawl()
+
+	// convert crawler.Pages to []crawler.DataLink
+	if inputs.isExport {
+		var dataLinks []crawler.DataLink
+
+		for v := range maps.Values(crawler_instance.Pages) {
+			dataLinks = append(dataLinks, *v)
+		}
+		
+		report_instance := report.NewReportCsv(dataLinks, inputs.dirName)
+		report_instance.Generate()
+	}
 }
 
 func getInputs() (userInput, error){
@@ -57,7 +72,7 @@ func getInputs() (userInput, error){
 	if err != nil {
 		return userInput{}, fmt.Errorf("failed to convert goroutine size to int [value: %v] [error: %v]", goroutine_size_input, err)
 	}
-	user_input.goroutine_size = goroutine_size
+	user_input.goroutineSize = goroutine_size
 
 	// max page
 	fmt.Printf("Max pages: ")
@@ -76,9 +91,15 @@ func getInputs() (userInput, error){
 	fmt.Scanln(&is_export)
 
 	if is_export == "Y" || is_export == "y" {
-		user_input.is_export = true
+		user_input.isExport = true
+
+		fmt.Printf("Directory name for save exported csv data: ")
+		var dir_name string
+		fmt.Scan(&dir_name)
+
+		user_input.dirName = dir_name
 	}else{
-		user_input.is_export = false
+		user_input.isExport = false
 	}
 
 	return user_input, nil

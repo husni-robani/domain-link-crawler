@@ -41,8 +41,8 @@ func (cfg *CrawlerCofig) RunCrawl(){
 	cfg.printReport(cfg.BaseURL.String())
 
 	// TODO:  Masukan kedalam printReport:
-	logger.InfoDefaultLogger.Info(fmt.Sprintf("Total Pages: %v\n", len(cfg.Pages)))
-	logger.InfoDefaultLogger.Info(fmt.Sprintf("Execution Time: %v\n", time.Since(start)))
+	logger.InfoDefaultLogger.Info(fmt.Sprintf("Total Pages: %v", len(cfg.Pages)))
+	logger.InfoDefaultLogger.Info(fmt.Sprintf("Execution Time: %v", time.Since(start)))
 }
 
 func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
@@ -88,9 +88,11 @@ func (cfg *CrawlerCofig) crawlPage(rawCurrentURL string) {
 		TotalURLAppearence: 1,
 	}
 	cfg.Mu.Unlock()
+
 	html, err := utils.GetHTML(rawCurrentURL)
 	if err != nil {
 		logger.ErrDefaultLogger.Error("failed to get html", rawCurrentURL, err)
+		<- cfg.ConcurrencyControl
 		return
 	}
 
@@ -109,9 +111,12 @@ rawCurrentURL,
 	}
 
 	<- cfg.ConcurrencyControl
-
 	for _, url_item := range urls{
-		parsed_url, _ := url.Parse(url_item)
+		parsed_url, err := url.Parse(url_item)
+		if err != nil {
+			logger.ErrDefaultLogger.Error("Failed to parse URL", url_item, err)
+			continue
+		}
 		if parsed_url.Host == cfg.BaseURL.Host{
 			cfg.Mu.Lock()
 			cfg.Pages[normalized_current_url].InternalLinksFound = append(cfg.Pages[normalized_current_url].InternalLinksFound, *parsed_url)
